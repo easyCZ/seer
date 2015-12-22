@@ -1,0 +1,1 @@
+rethinkdb --daemon -n seer
