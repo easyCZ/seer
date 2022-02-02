@@ -1,5 +1,7 @@
 tasks:
-  - init: |
-      echo 'TODO: build project'
+  - init: go get -v -t -d ./...
     command: |
       echo 'TODO: start app'
+vscode:
+  extensions:
+    - golang.go
