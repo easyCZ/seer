@@ -11,7 +11,7 @@ import (
 )
 
 func TestSynthetic(t *testing.T) {
-	u, err := url.Parse("https://reddit.com/.json")
+	u, err := url.Parse("https://jsonplaceholder.typicode.com/posts")
 	require.NoError(t, err)
 
 	headers := http.Header{}
@@ -21,12 +21,17 @@ func TestSynthetic(t *testing.T) {
 		URL:     u,
 		Method:  http.MethodGet,
 		Headers: headers,
+		Extracts: []ExtractSpec{
+			{Name: "TEST", Expression: ".[0].userId"},
+		},
 	}
 
 	result, err := Execute(context.Background(), spec)
 	require.NoError(t, err)
 
-	fmt.Println(result)
 	fmt.Println(string(result.Body))
-
+	fmt.Println(result.Extracts)
+	require.Equal(t, map[string]string{
+		"TEST": "1",
+	}, result.Extracts)
 }
