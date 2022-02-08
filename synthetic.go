@@ -7,10 +7,42 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
+	"net/http/httputil"
+	"strings"
 
 	"github.com/itchyny/gojq"
 )
+
+type SynteticSpec struct {
+	Steps []StepSpec
+}
+
+type SyntheticResult struct {
+	StepResults []*StepResult
+}
+
+func ExecuteSynthetic(ctx context.Context, spec SynteticSpec) (*SyntheticResult, error) {
+	vars := map[string]string{}
+
+	var results []*StepResult
+	for _, step := range spec.Steps {
+		result, err := ExecuteStep(ctx, step, vars)
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute step: %w", err)
+		}
+
+		results = append(results, result)
+
+		// extend our variables with new extracts, we retain the previous ones as they are valid for all steps, unless overriden
+		for key, value := range result.Extracts {
+			vars[key] = value
+		}
+	}
+
+	return &SyntheticResult{
+		StepResults: results,
+	}, nil
+}
 
 type ExtractSpec struct {
 	Name       string
@@ -18,7 +50,7 @@ type ExtractSpec struct {
 }
 
 type StepSpec struct {
-	URL      *url.URL
+	URL      string
 	Method   string
 	Headers  http.Header
 	Body     []byte
@@ -33,15 +65,43 @@ type StepResult struct {
 	Extracts map[string]string
 }
 
-func Execute(ctx context.Context, step StepSpec) (*StepResult, error) {
-	req, err := http.NewRequestWithContext(ctx, step.Method, step.URL.String(), bytes.NewBuffer(step.Body))
+func ExecuteStep(ctx context.Context, step StepSpec, vars map[string]string) (*StepResult, error) {
+	if vars == nil {
+		vars = map[string]string{}
+	}
+
+	url := step.URL
+	for key, value := range vars {
+		// try to replace the variable across most properties
+		url = strings.ReplaceAll(url, fmt.Sprintf("{%s}", key), value)
+
+		// TODO: replace other properties of the spec
+	}
+
+	req, err := http.NewRequestWithContext(ctx, step.Method, url, bytes.NewBuffer(step.Body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct request: %w", err)
+	}
+
+	{
+		d, err := httputil.DumpRequest(req, true)
+		if err == nil {
+			fmt.Println("Request")
+			fmt.Println(string(d))
+		}
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute HTTP request: %w", err)
+	}
+
+	{
+		d, err := httputil.DumpResponse(resp, true)
+		if err == nil {
+			fmt.Println("Response")
+			fmt.Println(string(d))
+		}
 	}
 
 	return StepResultFromResponse(resp, step)
