@@ -28,7 +28,7 @@ func main() {
 		Name: "my-first-synthetic",
 	})
 	if result.Error != nil {
-		log.Fatalf("Failed to create db record: %w", err)
+		log.Fatalf("Failed to create db record: %v", err)
 	}
 
 	r := chi.NewRouter()
