@@ -17,8 +17,23 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.17
+    
     - name: Dependencies
       run: go mod download
+
+    - name: Validate go.mod
+      run: |
+        go mod tidy
+        output=$(git diff --name-only)
+
+        if [ -z "$output" ]; then
+          echo "No drift detected"
+          exit 0
+        else
+          echo $output
+          echo "'go mod tidy' generated changes, run it locally and commit changes"
+          exit 1
+        fi
 
     - name: Build
       run: go build -v ./...
