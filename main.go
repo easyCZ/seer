@@ -49,8 +49,10 @@ func main() {
 	service := api.NewSyntheticsService(repo)
 
 	r := chi.NewRouter()
-	api.AddRoutes(r)
+	api.AddRoutes(r, service)
 
 	log.Printf("Starting server on http://localhost:3000")
-	http.ListenAndServe(":3000", r)
+	if err := http.ListenAndServe(":3000", r); err != nil {
+		log.Fatalf("Failed to start HTTP server: %v", err)
+	}
 }
