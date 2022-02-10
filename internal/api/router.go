@@ -10,6 +10,7 @@ func AddRoutes(r *chi.Mux, svc *SyntheticsService) {
 	r.Get("/synthetics", func(rw http.ResponseWriter, r *http.Request) {
 		syns, err := svc.List(r.Context())
 		if err != nil {
+			log.Println("Failed to list synthetics", err)
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
