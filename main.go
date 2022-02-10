@@ -49,18 +49,10 @@ func main() {
 	service := api.NewSyntheticsService(repo)
 
 	r := chi.NewRouter()
-	r.Get("/synthetics", func(rw http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		syns, err := service.List(ctx)
-		if err != nil {
-			rw.WriteHeader(http.StatusInternalServerError)
-		}
-
-		if err := api.WriteJSON(rw, r, http.StatusOK, syns); err != nil {
-			log.Println("Failed to serialize synthetics to response")
-		}
-	})
+	api.AddRoutes(r, service)
 
 	log.Printf("Starting server on http://localhost:3000")
-	http.ListenAndServe(":3000", r)
+	if err := http.ListenAndServe(":3000", r); err != nil {
+		log.Fatalf("Failed to start HTTP server: %v", err)
+	}
 }
