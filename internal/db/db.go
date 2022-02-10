@@ -16,6 +16,6 @@ type ConnectionParams struct {
 }
 
 func New(params ConnectionParams) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s", params.Host, params.User, params.Password, params.DatabaseName)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s", params.Host, params.Port, params.User, params.Password, params.DatabaseName)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }

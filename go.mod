@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/itchyny/gojq v0.12.6
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.5
