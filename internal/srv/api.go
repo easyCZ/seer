@@ -25,28 +25,6 @@ func ListenAndServeControlPlane(c CPConfig) error {
 	repo := db.NewSyntheticsRepository(database)
 	service := api.NewSyntheticsService(repo)
 
-	//if _, err := repo.Create(context.Background(), &db.Synthetic{
-	//	Name: "initial-synthetic",
-	//	Spec: db.SyntheticSpec{
-	//		Variables: []*db.Variable{
-	//			{
-	//				Name:  "TEST",
-	//				Value: "foo",
-	//			},
-	//		},
-	//		Steps: []*db.StepSpec{
-	//			{
-	//				URL: "https://jsonplaceholder.typicode.com/posts",
-	//				Headers: map[string]string{
-	//					"Content-Type": "application/json",
-	//				},
-	//			},
-	//		},
-	//	},
-	//}); err != nil {
-	//	log.Fatalf("Failed to create synthetic: %v", err)
-	//}
-
 	r := chi.NewRouter()
 	api.AddRoutes(r, service)
 

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/go-chi/chi/v5 v5.0.7
+	github.com/gorilla/websocket v1.4.2
 	github.com/itchyny/gojq v0.12.6
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0

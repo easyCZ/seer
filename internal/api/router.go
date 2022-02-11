@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"strconv"
@@ -37,6 +38,31 @@ func AddRoutes(r *chi.Mux, svc *SyntheticsService) {
 
 		if err := WriteJSON(w, r, http.StatusOK, s); err != nil {
 			log.Println("Failed to write synthetic to response", err)
+		}
+	})
+
+	var upgrader = websocket.Upgrader{} // use default options
+
+	r.HandleFunc("/ws/agents", func(w http.ResponseWriter, r *http.Request) {
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Print("upgrade:", err)
+			return
+		}
+		defer c.Close()
+
+		for {
+			mt, message, err := c.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				break
+			}
+			log.Printf("recv: %s", message)
+			err = c.WriteMessage(mt, message)
+			if err != nil {
+				log.Println("write:", err)
+				break
+			}
 		}
 	})
 }
