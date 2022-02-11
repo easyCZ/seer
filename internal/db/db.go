@@ -10,7 +10,7 @@ import (
 
 type ConnectionParams struct {
 	Host         string
-	Port         int
+	Port         uint
 	User         string
 	Password     string
 	DatabaseName string
