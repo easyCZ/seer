@@ -10,6 +10,7 @@ require (
 	gorm.io/datatypes v1.0.5
 	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.5
+	k8s.io/apimachinery v0.23.3
 )
 
 require (

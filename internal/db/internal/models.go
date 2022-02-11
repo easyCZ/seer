@@ -7,7 +7,7 @@ import (
 
 type Synthetic struct {
 	gorm.Model
-	Name string
 
+	Name string
 	Spec datatypes.JSON
 }

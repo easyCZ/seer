@@ -5,13 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/easyCZ/qfy/internal/db/internal"
+	"time"
 
 	"gorm.io/gorm"
 )
 
 // Synthetic is the internal representation
 type Synthetic struct {
-	ID   uint          `json:"id"`
+	ID uint `json:"id"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	DeletedAt time.Time `json:"deleted_at"`
+
 	Name string        `json:"name"`
 	Spec SyntheticSpec `json:"spec"`
 }
@@ -68,6 +74,16 @@ func (r *SyntheticsRepository) List(ctx context.Context) ([]*Synthetic, error) {
 	return synthetics, nil
 }
 
+func (r *SyntheticsRepository) Get(ctx context.Context, id uint) (*Synthetic, error) {
+	var model internal.Synthetic
+	tx := r.db.WithContext(ctx).First(&model, id)
+	if tx.Error != nil {
+		return nil, fmt.Errorf("synthetic ID: %d does not exist", id)
+	}
+
+	return syntheticFromModel(&model)
+}
+
 func (r *SyntheticsRepository) Create(ctx context.Context, s *Synthetic) (*Synthetic, error) {
 	spec, err := s.Spec.ToJSON()
 	if err != nil {
@@ -84,9 +100,7 @@ func (r *SyntheticsRepository) Create(ctx context.Context, s *Synthetic) (*Synth
 		return nil, fmt.Errorf("failed to create a new synthetic record: %w", tx.Error)
 	}
 
-	s.ID = record.ID
-
-	return s, nil
+	return syntheticFromModel(record)
 }
 
 func syntheticFromModel(s *internal.Synthetic) (*Synthetic, error) {
@@ -96,7 +110,11 @@ func syntheticFromModel(s *internal.Synthetic) (*Synthetic, error) {
 	}
 
 	return &Synthetic{
-		ID:   s.ID,
+		ID:        s.ID,
+		DeletedAt: s.DeletedAt.Time,
+		UpdatedAt: s.UpdatedAt,
+		CreatedAt: s.CreatedAt,
+
 		Name: s.Name,
 		Spec: spec,
 	}, nil
