@@ -7,11 +7,6 @@ import (
 	"github.com/easyCZ/qfy/internal/db"
 )
 
-type Synthetic struct {
-	ID   uint
-	Name string
-}
-
 func NewSyntheticsService(repo *db.SyntheticsRepository) *SyntheticsService {
 	return &SyntheticsService{repo: repo}
 }
@@ -20,19 +15,20 @@ type SyntheticsService struct {
 	repo *db.SyntheticsRepository
 }
 
-func (s *SyntheticsService) List(ctx context.Context) ([]*Synthetic, error) {
+func (s *SyntheticsService) List(ctx context.Context) ([]*db.Synthetic, error) {
 	results, err := s.repo.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list synthetics: %w", err)
 	}
 
-	var synthetics []*Synthetic
-	for _, s := range results {
-		synthetics = append(synthetics, &Synthetic{
-			ID:   s.ID,
-			Name: s.Name,
-		})
+	return results, nil
+}
+
+func (s *SyntheticsService) Get(ctx context.Context, id uint) (*db.Synthetic, error) {
+	result, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get synthetic: %w", err)
 	}
 
-	return synthetics, nil
+	return result, nil
 }
