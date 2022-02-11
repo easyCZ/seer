@@ -50,6 +50,15 @@ func NewSyntheticsRepository(db *gorm.DB) *SyntheticsRepository {
 	return &SyntheticsRepository{db: db}
 }
 
+func NewSyntheticsRepositoryFromDBParams(params ConnectionParams) (*SyntheticsRepository, error) {
+	conn, err := New(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewSyntheticsRepository(conn), nil
+}
+
 type SyntheticsRepository struct {
 	db *gorm.DB
 }
