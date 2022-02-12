@@ -57,14 +57,15 @@ func AddRoutes(r *chi.Mux, svc *SyntheticsService) {
 			fmt.Println(mt, message, err)
 			fmt.Println("err", err)
 			if err != nil {
-				if err == websocket.ErrCloseSent
-				log.Println("read:", err)
+				log.Println("read err:", string(message), err)
 				break
 			}
-			log.Printf("recv: %s", message)
+
+			c.
+				log.Printf("recv: %s", message)
 			err = c.WriteMessage(mt, message)
 			if err != nil {
-				log.Println("write:", err)
+				log.Println("write err:", err)
 				break
 			}
 		}
