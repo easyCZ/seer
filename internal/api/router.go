@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"log"
@@ -53,7 +54,10 @@ func AddRoutes(r *chi.Mux, svc *SyntheticsService) {
 
 		for {
 			mt, message, err := c.ReadMessage()
+			fmt.Println(mt, message, err)
+			fmt.Println("err", err)
 			if err != nil {
+				if err == websocket.ErrCloseSent
 				log.Println("read:", err)
 				break
 			}
