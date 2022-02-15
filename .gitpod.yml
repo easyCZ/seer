@@ -1,7 +1,7 @@
 image:
   file: .gitpod.dockerfile
 tasks:
-  - init: >
+  - init: |
     # Download dependencies
     go get -v -t -d ./...
     # Install protobuf dependencies
