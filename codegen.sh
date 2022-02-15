@@ -1,3 +1,5 @@
 #!/bin/bash
 
-docker run --volume "$(pwd):/workspace" --workdir /workspace bufbuild/buf generate
+rm -rf gen/
+
+buf generate
