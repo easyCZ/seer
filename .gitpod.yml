@@ -1,7 +1,11 @@
 image:
   file: .gitpod.dockerfile
 tasks:
-  - init: go get -v -t -d ./...
+  - name: Golang dependencies
+    init: |
+      go get -v -t -d ./...
+      go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
+      go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 ports:
   - port: 3000
     onOpen: open-browser
