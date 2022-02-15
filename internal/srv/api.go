@@ -1,10 +1,13 @@
 package srv
 
 import (
+	agentv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/easyCZ/qfy/internal/api"
 	"github.com/easyCZ/qfy/internal/db"
 	"github.com/go-chi/chi/v5"
+	"google.golang.org/grpc"
 	"log"
+	"net"
 	"net/http"
 )
 
@@ -46,6 +49,21 @@ func ListenAndServeControlPlane(c CPConfig) error {
 	//}); err != nil {
 	//	log.Fatalf("Failed to create synthetic: %v", err)
 	//}
+
+	listener, err := net.Listen("tcp", "localhost:3001")
+	if err != nil {
+		log.Fatalf("Failed to listen on port 3001, %v", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	agentv1.RegisterAgentServiceServer(grpcServer, &AgentService{})
+
+	go func() {
+		log.Printf("Starting gRPC server on localhost:3001")
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatalf("gRPC server failed to start: %v", err)
+		}
+	}()
 
 	r := chi.NewRouter()
 	api.AddRoutes(r, service)
