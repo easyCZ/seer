@@ -14,8 +14,8 @@ jobs:
       postgres:
         image: postgres:12
         env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
+          POSTGRES_USER: gitpod
+          POSTGRES_PASSWORD: gitpod
           POSTGRES_DB: postgres_test
         ports:
           - 5432:5432
@@ -51,6 +51,8 @@ jobs:
 
     - name: Build
       run: go build -v ./...
-  
+
     - name: Test
-      run: go test -v ./...
+      run: |
+        createdb -p 5432 -h 127.0.0.1 -U gitpod -e postgres-test
+        go test -v ./...
