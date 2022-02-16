@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	agentv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/easyCZ/qfy/internal/db"
 	"github.com/easyCZ/qfy/internal/srv"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"log"
 )
 
@@ -35,6 +38,9 @@ var (
 	agentCmd = &cobra.Command{
 		Use:   "agent",
 		Short: "Start agent",
+		Run: func(cmd *cobra.Command, args []string) {
+			runClient(cmd.Context())
+		},
 	}
 
 	fixturesCmd = &cobra.Command{
@@ -83,6 +89,34 @@ var (
 		},
 	}
 )
+
+func runClient(ctx context.Context) {
+	conn, err := grpc.Dial("localhost:3001", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to dial localhost:3001: %v", err)
+	}
+	defer conn.Close()
+
+	client := agentv1.NewAgentServiceClient(conn)
+
+	stream, err := client.Subscribe(ctx, &agentv1.SubscribeRequest{
+		AgentID:  rand.String(10),
+		Location: "EU",
+	})
+	if err != nil {
+		log.Fatalf("Failed to subscribe agent: %v", err)
+	}
+
+	for {
+		msg, err := stream.Recv()
+		if err != nil {
+			log.Fatalf("Failed to receive message: %v", err)
+		}
+
+		log.Printf("Got message %v", msg)
+	}
+
+}
 
 var (
 	dbHost, dbUser, dbPassword, dbName string
