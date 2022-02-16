@@ -52,7 +52,11 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test
+    - name: Create test DB
       run: |
-        PGPASSWORD=gitpod createdb -p 5432 -h 127.0.0.1 -U gitpod -e postgres-test
-        go test -v ./...
+        createdb -p 5432 -h 127.0.0.1 -U gitpod -e postgres-test
+      env:
+        PGPASSWORD: gitpod
+
+    - name: Tests
+      run: go test -v ./...
