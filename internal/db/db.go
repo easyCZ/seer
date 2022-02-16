@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+
 	"github.com/easyCZ/qfy/internal/db/internal"
 
 	"gorm.io/driver/postgres"
@@ -21,6 +22,16 @@ func New(params ConnectionParams) (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
 
+func GetModels() []interface{} {
+	return []interface{}{
+		&internal.Synthetic{},
+	}
+}
+
 func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(&internal.Synthetic{})
+	return db.AutoMigrate(GetModels()...)
+}
+
+func DropTables(db *gorm.DB) error {
+	return db.Migrator().DropTable(GetModels()...)
 }
