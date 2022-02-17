@@ -11,19 +11,22 @@ func TestAgentUpsert(t *testing.T) {
 	db := NewTestDB(t)
 	repo := NewAgentsRepository(db)
 
-	id := "test-agent-1"
-	toUpsert := &Agent{
-		ID:        id,
+	toCreate := &Agent{
 		Region:    "EU",
 		IP:        "0.0.0.0",
 		Connected: true,
 	}
 
-	_, err := repo.Upsert(context.Background(), toUpsert)
+	created, err := repo.Create(context.Background(), toCreate)
+	require.NoError(t, err)
+	require.True(t, created.Connected)
+
+	_, err = repo.Get(context.Background(), created.ID)
 	require.NoError(t, err)
 
-	get, err := repo.Get(context.Background(), id)
-	require.NoError(t, err)
+	require.NoError(t, repo.SetConnected(context.Background(), created.ID, false))
 
-	require.Equal(t, toUpsert, get)
+	get, err := repo.Get(context.Background(), created.ID)
+	require.NoError(t, err)
+	require.False(t, get.Connected)
 }

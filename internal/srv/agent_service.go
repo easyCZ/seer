@@ -1,6 +1,7 @@
 package srv
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -19,12 +20,12 @@ func (s *AgentService) Subscribe(r *agentv1.SubscribeRequest, stream agentv1.Age
 
 	p, _ := peer.FromContext(stream.Context())
 
-	if _, err := s.repo.Upsert(stream.Context(), &db.Agent{
-		ID:        r.AgentID,
+	agent, err := s.repo.Create(stream.Context(), &db.Agent{
 		Region:    r.Location,
 		IP:        p.Addr.String(),
 		Connected: true,
-	}); err != nil {
+	})
+	if err != nil {
 		return fmt.Errorf("failed to register agent: %v", err)
 	}
 
@@ -39,6 +40,8 @@ func (s *AgentService) Subscribe(r *agentv1.SubscribeRequest, stream agentv1.Age
 			}
 		case <-stream.Context().Done():
 			log.Printf("client %s disconnected", r.AgentID)
+
+			s.repo.SetConnected(context.Background(), agent.ID, false)
 			return nil
 		}
 	}

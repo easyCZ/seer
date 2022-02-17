@@ -25,6 +25,7 @@ func New(params ConnectionParams) (*gorm.DB, error) {
 func GetModels() []interface{} {
 	return []interface{}{
 		&internal.Synthetic{},
+		&Agent{},
 	}
 }
 
