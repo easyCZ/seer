@@ -23,7 +23,7 @@ func NewAgentsRepository(db *gorm.DB) *AgentsRepository {
 	return &AgentsRepository{db: db}
 }
 
-func (r *AgentsRepository) Upsert(ctx context.Context, a *Agent) error {
+func (r *AgentsRepository) Upsert(ctx context.Context, a *Agent) (*Agent, error) {
 	tx := r.db.WithContext(ctx).Clauses(
 		clause.OnConflict{
 			Columns: []clause.Column{
@@ -37,10 +37,10 @@ func (r *AgentsRepository) Upsert(ctx context.Context, a *Agent) error {
 			UpdateAll: false,
 		}).Create(a)
 	if tx.Error != nil {
-		return fmt.Errorf("failed to create agent recorc: %v", tx.Error)
+		return nil, fmt.Errorf("failed to create agent recorc: %v", tx.Error)
 	}
 
-	return nil
+	return a, nil
 }
 
 func (r *AgentsRepository) SetConnected(ctx context.Context, agentID string, connected bool) error {
@@ -51,4 +51,14 @@ func (r *AgentsRepository) SetConnected(ctx context.Context, agentID string, con
 		return fmt.Errorf("failed to set agent connected field: %v", tx.Error)
 	}
 	return nil
+}
+
+func (r *AgentsRepository) Get(ctx context.Context, id string) (*Agent, error) {
+	var agent Agent
+	tx := r.db.First(&agent, id)
+	if tx.Error != nil {
+		return nil, fmt.Errorf("failed to lookup agent with ID %s: %w", id, tx.Error)
+	}
+
+	return &agent, nil
 }

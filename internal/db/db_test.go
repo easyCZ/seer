@@ -10,7 +10,7 @@ import (
 // NewTestDB creates a new DB instance for tests.
 // You may need to create the test database using:
 // 	createdb -p 5432 -h 127.0.0.1 -U gitpod -e postgres-test
-func NewTestDB(t *testing.T) (*gorm.DB, error) {
+func NewTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	database, err := New(ConnectionParams{
@@ -27,5 +27,5 @@ func NewTestDB(t *testing.T) (*gorm.DB, error) {
 		require.NoError(t, DropTables(database))
 	})
 
-	return database, nil
+	return database
 }

@@ -2,11 +2,12 @@ package srv
 
 import (
 	"fmt"
-	"github.com/easyCZ/qfy/gen/v1"
-	"github.com/easyCZ/qfy/internal/db"
-	"google.golang.org/grpc/peer"
 	"log"
 	"time"
+
+	agentv1 "github.com/easyCZ/qfy/gen/v1"
+	"github.com/easyCZ/qfy/internal/db"
+	"google.golang.org/grpc/peer"
 )
 
 type AgentService struct {
@@ -18,7 +19,7 @@ func (s *AgentService) Subscribe(r *agentv1.SubscribeRequest, stream agentv1.Age
 
 	p, _ := peer.FromContext(stream.Context())
 
-	if err := s.repo.Upsert(stream.Context(), &db.Agent{
+	if _, err := s.repo.Upsert(stream.Context(), &db.Agent{
 		ID:        r.AgentID,
 		Region:    r.Location,
 		IP:        p.Addr.String(),
