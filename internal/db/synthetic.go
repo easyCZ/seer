@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/easyCZ/qfy/internal/db/internal"
 	"time"
+
+	"github.com/easyCZ/qfy/internal/db/internal"
 
 	"gorm.io/gorm"
 )

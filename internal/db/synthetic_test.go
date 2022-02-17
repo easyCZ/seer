@@ -9,8 +9,7 @@ import (
 )
 
 func TestSyntheticCRUD(t *testing.T) {
-	db, err := NewTestDB(t)
-	require.NoError(t, err)
+	db := NewTestDB(t)
 
 	repo := NewSyntheticsRepository(db)
 	created, err := repo.Create(context.Background(), &Synthetic{
