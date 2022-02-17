@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -39,5 +40,15 @@ func (r *AgentsRepository) Upsert(ctx context.Context, a *Agent) error {
 		return fmt.Errorf("failed to create agent recorc: %v", tx.Error)
 	}
 
+	return nil
+}
+
+func (r *AgentsRepository) SetConnected(ctx context.Context, agentID string, connected bool) error {
+	tx := r.db.Model(&Agent{}).Where(&Agent{
+		ID: agentID,
+	}).UpdateColumn("connected", false)
+	if tx.Error != nil {
+		return fmt.Errorf("failed to set agent connected field: %v", tx.Error)
+	}
 	return nil
 }
