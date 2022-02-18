@@ -71,20 +71,3 @@ func TestSynthetic(t *testing.T) {
 		"COMMENT_EMAIL": "Eliseo@gardner.biz",
 	}, results.StepResults[len(results.StepResults)-1].Extracts)
 }
-
-func headers(t *testing.T, args ...string) http.Header {
-	t.Helper()
-
-	if len(args)%2 != 0 {
-		require.Fail(t, "header arguments are not of even length")
-	}
-
-	h := http.Header{}
-	for i := 0; i < len(args); i += 2 {
-		key := args[i]
-		value := args[i+1]
-		h.Add(key, value)
-	}
-
-	return h
-}
