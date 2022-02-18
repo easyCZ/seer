@@ -31,6 +31,12 @@ message StepSpec {
     string url = 1;
     string method = 2;
     string body = 3;
+    repeated Extract extracts = 4;
+}
+
+message Extract {
+    string name = 1;
+    string jql = 2;
 }
 
 message ListSyntheticsRequest {}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	apiv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,16 +14,19 @@ func TestStep(t *testing.T) {
 	headers := http.Header{}
 	headers.Add("Accept", "application/json")
 
-	spec := StepSpec{
-		URL:     "https://jsonplaceholder.typicode.com/posts",
-		Method:  http.MethodGet,
-		Headers: headers,
-		Extracts: []ExtractSpec{
-			{Name: "TEST", Expression: ".[0].userId"},
+	spec := &apiv1.StepSpec{
+		Url:    "https://jsonplaceholder.typicode.com/posts",
+		Method: http.MethodGet,
+		// Headers: headers,
+		Extracts: []*apiv1.Extract{
+			{Name: "TEST", Jql: ".[0].userId"},
 		},
 	}
 
-	result, err := ExecuteStep(context.Background(), spec, nil)
+	result, err := ExecuteStep(context.Background(), &apiv1.Step{
+		Name: "Test",
+		Spec: spec,
+	}, nil)
 	require.NoError(t, err)
 
 	fmt.Println(string(result.Body))
@@ -33,22 +37,28 @@ func TestStep(t *testing.T) {
 }
 
 func TestSynthetic(t *testing.T) {
-	spec := SynteticSpec{
-		Steps: []StepSpec{
+	spec := &apiv1.SyntheticSpec{
+		Steps: []*apiv1.Step{
 			{
-				URL:     "https://jsonplaceholder.typicode.com/posts",
-				Method:  http.MethodGet,
-				Headers: headers(t, "Accept", "application/json"),
-				Extracts: []ExtractSpec{
-					{Name: "POST_ID", Expression: ".[0].id"}, // extract the post ID
+				Name: "Fetch posts",
+				Spec: &apiv1.StepSpec{
+					Url:    "https://jsonplaceholder.typicode.com/posts",
+					Method: http.MethodGet,
+					// Headers: headers(t, "Accept", "application/json"),
+					Extracts: []*apiv1.Extract{
+						{Name: "POST_ID", Jql: ".[0].id"}, // extract the post ID
+					},
 				},
 			},
 			{
-				URL:     "https://jsonplaceholder.typicode.com/posts/{POST_ID}/comments",
-				Method:  http.MethodGet,
-				Headers: headers(t, "Accept", "application/json"),
-				Extracts: []ExtractSpec{
-					{Name: "COMMENT_EMAIL", Expression: ".[0].email"}, // extract the comment email
+				Name: "Get comments for first post",
+				Spec: &apiv1.StepSpec{
+					Url:    "https://jsonplaceholder.typicode.com/posts/{POST_ID}/comments",
+					Method: http.MethodGet,
+					// Headers: headers(t, "Accept", "application/json"),
+					Extracts: []*apiv1.Extract{
+						{Name: "COMMENT_EMAIL", Jql: ".[0].email"}, // extract the comment email
+					},
 				},
 			},
 		},
