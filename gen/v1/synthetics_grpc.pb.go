@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             (unknown)
-// source: proto/synthetics.proto
+// source: proto/v1/synthetics.proto
 
 package apiv1
 
@@ -126,5 +126,5 @@ var SyntheticsService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "proto/synthetics.proto",
+	Metadata: "proto/v1/synthetics.proto",
 }
