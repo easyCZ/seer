@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/easyCZ/qfy/gen/v1"
+	apiv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/easyCZ/qfy/internal/db"
 	"google.golang.org/grpc/peer"
 )
@@ -41,7 +41,9 @@ func (s *AgentService) Subscribe(r *apiv1.SubscribeRequest, stream apiv1.AgentSe
 		case <-stream.Context().Done():
 			log.Printf("client %s disconnected", r.AgentID)
 
-			s.repo.SetConnected(context.Background(), agent.ID, false)
+			if err := s.repo.SetConnected(context.Background(), agent.ID, false); err != nil {
+				return fmt.Errorf("failed to set agent as disconnected: %w", err)
+			}
 			return nil
 		}
 	}

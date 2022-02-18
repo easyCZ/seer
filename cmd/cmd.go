@@ -9,6 +9,7 @@ import (
 	"github.com/easyCZ/qfy/internal/srv"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -93,7 +94,7 @@ var (
 )
 
 func runClient(ctx context.Context) {
-	conn, err := grpc.Dial("localhost:3000", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:3000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to dial localhost:3000: %v", err)
 	}
