@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package synthetics.v1;
+
+option go_package = "github.com/easyCZ/qfy/gen/v1;syntheticsv1";
+
+
+message Synthetic {
+    string id = 1;
+    string name = 2;
+
+    SyntheticSpec spec = 3;
+}
+
+message SyntheticSpec {
+    repeated Variable variables = 1;
+    repeated Step steps = 2;
+}
+
+message Variable {
+    string name = 1;
+    string value = 2;
+}
+
+message Step {
+    string name = 1;
+    StepSpec spec = 2;
+}
+
+message StepSpec {
+    string url = 1;
+    string method = 2;
+    string body = 3;
+}
+
+message ListSyntheticsRequest {}
+
+service SyntheticsService {
+    rpc ListSynthetics(ListSyntheticsRequest) returns (stream Synthetic);
+}
