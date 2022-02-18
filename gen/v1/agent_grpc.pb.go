@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: proto/v1/agent.proto
 
-package agentv1
+package apiv1
 
 import (
 	context "context"
