@@ -71,14 +71,17 @@ func (a *Agent) Run() {
 			ticker := time.NewTicker(time.Second * 10)
 
 			select {
-			case <- ticker.C:
-				a.syntheticsMu.RLock()
-				
+			case <-ticker.C:
+				var synthetics []*apiv1.Synthetic
+				copy(synthetics, a.synthetics)
+
+				for _, s := range synthetics {
+					ExecuteSynthetic(ctx, s.Spec)
+				}
+
 			}
 		}
-		
-		for _, s := range a.synthetics
-		ExecuteSynthetic(ctx, )
+
 	})()
 
 	a.wg.Wait()
