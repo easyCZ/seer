@@ -93,9 +93,9 @@ var (
 )
 
 func runClient(ctx context.Context) {
-	conn, err := grpc.Dial("localhost:3001", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:3000", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("Failed to dial localhost:3001: %v", err)
+		log.Fatalf("Failed to dial localhost:3000: %v", err)
 	}
 	defer conn.Close()
 
