@@ -56,12 +56,16 @@ func dbSyntheticSpecToV1(spec *db.SyntheticSpec) *apiv1.SyntheticSpec {
 }
 
 func dbStepToV1(step *db.StepSpec) *apiv1.Step {
+	var body string
+	if step.Body != nil {
+		body = *step.Body
+	}
 	return &apiv1.Step{
 		Name: "TODO",
 		Spec: &apiv1.StepSpec{
 			Url:    step.URL,
 			Method: http.MethodGet,
-			Body:   *step.Body,
+			Body:   body,
 		},
 	}
 }
