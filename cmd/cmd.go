@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"log"
+
 	agentv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/easyCZ/qfy/internal/db"
 	"github.com/easyCZ/qfy/internal/srv"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"log"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 		Short: "Start API server & Control Plane",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := srv.ListenAndServeControlPlane(srv.CPConfig{
+				GRPCPort: 3000,
 				DB: db.ConnectionParams{
 					Host:         dbHost,
 					Port:         dbPort,
@@ -91,9 +93,9 @@ var (
 )
 
 func runClient(ctx context.Context) {
-	conn, err := grpc.Dial("localhost:3001", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:3000", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("Failed to dial localhost:3001: %v", err)
+		log.Fatalf("Failed to dial localhost:3000: %v", err)
 	}
 	defer conn.Close()
 
