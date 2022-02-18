@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 	"strings"
 
+	apiv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/itchyny/gojq"
 )
 
@@ -21,7 +22,7 @@ type SyntheticResult struct {
 	StepResults []*StepResult
 }
 
-func ExecuteSynthetic(ctx context.Context, spec SynteticSpec) (*SyntheticResult, error) {
+func ExecuteSynthetic(ctx context.Context, spec *apiv1.SyntheticSpec) (*SyntheticResult, error) {
 	vars := map[string]string{}
 
 	var results []*StepResult
@@ -65,12 +66,13 @@ type StepResult struct {
 	Extracts map[string]string
 }
 
-func ExecuteStep(ctx context.Context, step StepSpec, vars map[string]string) (*StepResult, error) {
+func ExecuteStep(ctx context.Context, step *apiv1.Step, vars map[string]string) (*StepResult, error) {
 	if vars == nil {
 		vars = map[string]string{}
 	}
 
-	url := step.URL
+	spec := step.Spec
+	url := spec.Url
 	for key, value := range vars {
 		// try to replace the variable across most properties
 		url = strings.ReplaceAll(url, fmt.Sprintf("{%s}", key), value)
@@ -78,7 +80,7 @@ func ExecuteStep(ctx context.Context, step StepSpec, vars map[string]string) (*S
 		// TODO: replace other properties of the spec
 	}
 
-	req, err := http.NewRequestWithContext(ctx, step.Method, url, bytes.NewBuffer(step.Body))
+	req, err := http.NewRequestWithContext(ctx, spec.Method, url, bytes.NewBufferString(spec.Body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct request: %w", err)
 	}
@@ -104,10 +106,10 @@ func ExecuteStep(ctx context.Context, step StepSpec, vars map[string]string) (*S
 		}
 	}
 
-	return StepResultFromResponse(resp, step)
+	return StepResultFromResponse(resp, spec)
 }
 
-func StepResultFromResponse(resp *http.Response, step StepSpec) (*StepResult, error) {
+func StepResultFromResponse(resp *http.Response, step *apiv1.StepSpec) (*StepResult, error) {
 	if resp == nil {
 		return nil, fmt.Errorf("nil response")
 	}
@@ -125,7 +127,7 @@ func StepResultFromResponse(resp *http.Response, step StepSpec) (*StepResult, er
 
 	extracts := map[string]string{}
 	for _, e := range step.Extracts {
-		query, err := gojq.Parse(e.Expression)
+		query, err := gojq.Parse(e.Jql)
 		if err != nil {
 			fmt.Println("failed to parse extract expression", err)
 			continue
