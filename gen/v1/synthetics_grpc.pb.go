@@ -4,7 +4,7 @@
 // - protoc             (unknown)
 // source: proto/synthetics.proto
 
-package syntheticsv1
+package apiv1
 
 import (
 	context "context"

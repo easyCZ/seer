@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package synthetics.v1;
 
-option go_package = "github.com/easyCZ/qfy/gen/v1;syntheticsv1";
+option go_package = "github.com/easyCZ/qfy/gen/v1;apiv1";
 
 
 message Synthetic {
