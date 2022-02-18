@@ -12,7 +12,8 @@ import (
 )
 
 type CPConfig struct {
-	DB db.ConnectionParams
+	DB       db.ConnectionParams
+	GRPCPort int
 }
 
 func ListenAndServeControlPlane(c CPConfig) error {
@@ -32,12 +33,12 @@ func ListenAndServeControlPlane(c CPConfig) error {
 	apiv1.RegisterAgentServiceServer(grpcServer, agentsSvc)
 	apiv1.RegisterSyntheticsServiceServer(grpcServer, syntheticsSvc)
 
-	listener, err := net.Listen("tcp", "localhost:3000")
+	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", c.GRPCPort))
 	if err != nil {
-		log.Fatalf("Failed to listen on port 3001, %v", err)
+		log.Fatalf("Failed to listen on port %d: %v", c.GRPCPort, err)
 	}
 
-	log.Printf("Starting gRPC server on localhost:3000")
+	log.Printf("Starting gRPC server on localhost:%d", c.GRPCPort)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("gRPC server failed to start: %v", err)
 	}

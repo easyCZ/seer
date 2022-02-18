@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	"log"
+
 	agentv1 "github.com/easyCZ/qfy/gen/v1"
 	"github.com/easyCZ/qfy/internal/db"
 	"github.com/easyCZ/qfy/internal/srv"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"log"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 		Short: "Start API server & Control Plane",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := srv.ListenAndServeControlPlane(srv.CPConfig{
+				GRPCPort: 3000,
 				DB: db.ConnectionParams{
 					Host:         dbHost,
 					Port:         dbPort,
