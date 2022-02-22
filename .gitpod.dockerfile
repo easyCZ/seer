@@ -11,4 +11,6 @@ RUN curl -SL "https://github.com/bufbuild/buf/releases/download/v{$BUF_VERSION}/
       -o "${LOCAL_BIN}/buf" && \
     chmod +x "${LOCAL_BIN}/buf"
 
+RUN pip install pre-commit
+
 USER gitpod
