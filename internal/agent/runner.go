@@ -31,7 +31,7 @@ var (
 	logger = log.New(os.Stderr, "runner", log.Default().Flags())
 )
 
-func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.Result, error) {
+func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.StepResult, error) {
 	if !atomic.CompareAndSwapInt32(&r.isExcecuting, 0, 1) {
 		return nil, fmt.Errorf("running is already executing")
 	}
@@ -43,7 +43,7 @@ func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.Re
 	spec := syn.Spec
 	vars := spec.Variables
 
-	var results []*apiv1.Result
+	var results []*apiv1.StepResult
 	for i, step := range spec.Steps {
 		logger.Printf("Executing step #%d - %s", i, step.Name)
 		result, err := r.executeStep(ctx, vars, step)
@@ -59,7 +59,7 @@ func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.Re
 	return results, nil
 }
 
-func (r *Runner) executeStep(ctx context.Context, vars []*apiv1.Variable, step *apiv1.Step) (*apiv1.Result, error) {
+func (r *Runner) executeStep(ctx context.Context, vars []*apiv1.Variable, step *apiv1.Step) (*apiv1.StepResult, error) {
 	spec := step.Spec
 
 	url := replaceStringWithVars(spec.Url, vars)
@@ -67,7 +67,15 @@ func (r *Runner) executeStep(ctx context.Context, vars []*apiv1.Variable, step *
 
 	request, err := http.NewRequestWithContext(ctx, spec.Method, url, bytes.NewBufferString(body))
 	if err != nil {
-		return nil, fmt.Errorf("failed to contstruct a new http request: %w", err)
+		return &apiv1.StepResult{
+			StepName: step.Name,
+			Outcome: &apiv1.StepResult_Error{
+				Error: &apiv1.StepError{
+					Message: "Failed to construct HTTP request",
+					Details: err.Error(),
+				},
+			},
+		}, nil
 	}
 
 	if r.debug {
@@ -96,9 +104,11 @@ func (r *Runner) executeStep(ctx context.Context, vars []*apiv1.Variable, step *
 		return nil, fmt.Errorf("failed to convert response: %w", err)
 	}
 
-	return &apiv1.Result{
+	return &apiv1.StepResult{
 		StepName: step.Name,
-		Response: response,
+		Outcome: &apiv1.StepResult_Response{
+			Response: response,
+		},
 	}, nil
 }
 

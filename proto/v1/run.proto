@@ -10,14 +10,27 @@ message Run {
     string id = 1;
     string synthetic_id = 2;
 
-    repeated Result results = 3;
+    repeated StepResult results = 3;
 }
 
-message Result {
+message StepResult {
     string step_name = 1;
 
-    Response response = 2;
-    repeated synthetics.v1.Variable variables = 3;
+    oneof outcome {
+        // response is present if the step completed succesfully
+        Response response = 2;
+
+        // error is if the step failed to execute
+        StepError error = 3;
+    }
+
+
+    repeated synthetics.v1.Variable variables = 4;
+}
+
+message StepError {
+    string message = 1;
+    string details = 2;
 }
 
 message Response {
