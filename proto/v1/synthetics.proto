@@ -35,8 +35,22 @@ message StepSpec {
 }
 
 message Extract {
+    // name is the name of this extract
     string name = 1;
-    string jql = 2;
+
+    enum From {
+        Body = 0;
+        Headers = 1;
+    }
+    // from defines from which part of the response data should be extracted.
+    From from = 2;
+
+    oneof expression {
+        string jq = 3;
+        string regexp = 4;
+        string yq = 5;
+    }
+
 }
 
 message ListSyntheticsRequest {}
