@@ -1,158 +1,144 @@
 package agent
 
-import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httputil"
-	"strings"
+// type SynteticSpec struct {
+// 	Steps []StepSpec
+// }
 
-	apiv1 "github.com/easyCZ/qfy/gen/v1"
-	"github.com/itchyny/gojq"
-)
+// type SyntheticResult struct {
+// 	StepResults []*StepResult
+// }
 
-type SynteticSpec struct {
-	Steps []StepSpec
-}
+// func ExecuteSynthetic(ctx context.Context, spec *apiv1.SyntheticSpec) (*SyntheticResult, error) {
+// 	vars := map[string]string{}
 
-type SyntheticResult struct {
-	StepResults []*StepResult
-}
+// 	var results []*StepResult
+// 	for _, step := range spec.Steps {
+// 		result, err := ExecuteStep(ctx, step, vars)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to execute step: %w", err)
+// 		}
 
-func ExecuteSynthetic(ctx context.Context, spec *apiv1.SyntheticSpec) (*SyntheticResult, error) {
-	vars := map[string]string{}
+// 		results = append(results, result)
 
-	var results []*StepResult
-	for _, step := range spec.Steps {
-		result, err := ExecuteStep(ctx, step, vars)
-		if err != nil {
-			return nil, fmt.Errorf("failed to execute step: %w", err)
-		}
+// 		// extend our variables with new extracts, we retain the previous ones as they are valid for all steps, unless overriden
+// 		for key, value := range result.Extracts {
+// 			vars[key] = value
+// 		}
+// 	}
 
-		results = append(results, result)
+// 	return &SyntheticResult{
+// 		StepResults: results,
+// 	}, nil
+// }
 
-		// extend our variables with new extracts, we retain the previous ones as they are valid for all steps, unless overriden
-		for key, value := range result.Extracts {
-			vars[key] = value
-		}
-	}
+// type ExtractSpec struct {
+// 	Name       string
+// 	Expression string
+// }
 
-	return &SyntheticResult{
-		StepResults: results,
-	}, nil
-}
+// type StepSpec struct {
+// 	URL      string
+// 	Method   string
+// 	Headers  http.Header
+// 	Body     []byte
+// 	Extracts []ExtractSpec
+// }
 
-type ExtractSpec struct {
-	Name       string
-	Expression string
-}
+// type StepResult struct {
+// 	Body    []byte
+// 	Headers http.Header
+// 	Code    int
 
-type StepSpec struct {
-	URL      string
-	Method   string
-	Headers  http.Header
-	Body     []byte
-	Extracts []ExtractSpec
-}
+// 	Extracts map[string]string
+// }
 
-type StepResult struct {
-	Body    []byte
-	Headers http.Header
-	Code    int
+// func ExecuteStep(ctx context.Context, step *apiv1.Step, vars map[string]string) (*StepResult, error) {
+// 	if vars == nil {
+// 		vars = map[string]string{}
+// 	}
 
-	Extracts map[string]string
-}
+// 	spec := step.Spec
+// 	url := spec.Url
+// 	for key, value := range vars {
+// 		// try to replace the variable across most properties
+// 		url = strings.ReplaceAll(url, fmt.Sprintf("{%s}", key), value)
 
-func ExecuteStep(ctx context.Context, step *apiv1.Step, vars map[string]string) (*StepResult, error) {
-	if vars == nil {
-		vars = map[string]string{}
-	}
+// 		// TODO: replace other properties of the spec
+// 	}
 
-	spec := step.Spec
-	url := spec.Url
-	for key, value := range vars {
-		// try to replace the variable across most properties
-		url = strings.ReplaceAll(url, fmt.Sprintf("{%s}", key), value)
+// 	req, err := http.NewRequestWithContext(ctx, spec.Method, url, bytes.NewBufferString(spec.Body))
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to construct request: %w", err)
+// 	}
 
-		// TODO: replace other properties of the spec
-	}
+// 	{
+// 		d, err := httputil.DumpRequest(req, true)
+// 		if err == nil {
+// 			fmt.Println("Request")
+// 			fmt.Println(string(d))
+// 		}
+// 	}
 
-	req, err := http.NewRequestWithContext(ctx, spec.Method, url, bytes.NewBufferString(spec.Body))
-	if err != nil {
-		return nil, fmt.Errorf("failed to construct request: %w", err)
-	}
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to execute HTTP request: %w", err)
+// 	}
 
-	{
-		d, err := httputil.DumpRequest(req, true)
-		if err == nil {
-			fmt.Println("Request")
-			fmt.Println(string(d))
-		}
-	}
+// 	{
+// 		d, err := httputil.DumpResponse(resp, true)
+// 		if err == nil {
+// 			fmt.Println("Response")
+// 			fmt.Println(string(d))
+// 		}
+// 	}
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute HTTP request: %w", err)
-	}
+// 	return StepResultFromResponse(resp, spec)
+// }
 
-	{
-		d, err := httputil.DumpResponse(resp, true)
-		if err == nil {
-			fmt.Println("Response")
-			fmt.Println(string(d))
-		}
-	}
+// func StepResultFromResponse(resp *http.Response, step *apiv1.StepSpec) (*StepResult, error) {
+// 	if resp == nil {
+// 		return nil, fmt.Errorf("nil response")
+// 	}
+// 	defer resp.Body.Close()
 
-	return StepResultFromResponse(resp, spec)
-}
+// 	body, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("faield to read response body: %w", err)
+// 	}
 
-func StepResultFromResponse(resp *http.Response, step *apiv1.StepSpec) (*StepResult, error) {
-	if resp == nil {
-		return nil, fmt.Errorf("nil response")
-	}
-	defer resp.Body.Close()
+// 	var data interface{}
+// 	if err := json.Unmarshal(body, &data); err != nil {
+// 		return nil, fmt.Errorf("failed to unmarshal body to JSON: %w", err)
+// 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("faield to read response body: %w", err)
-	}
+// 	extracts := map[string]string{}
+// 	for _, e := range step.Extracts {
+// 		query, err := gojq.Parse(e.Jql)
+// 		if err != nil {
+// 			fmt.Println("failed to parse extract expression", err)
+// 			continue
+// 		}
 
-	var data interface{}
-	if err := json.Unmarshal(body, &data); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal body to JSON: %w", err)
-	}
+// 		iterator := query.Run(data)
+// 		for {
+// 			v, ok := iterator.Next()
+// 			if !ok {
+// 				break
+// 			}
 
-	extracts := map[string]string{}
-	for _, e := range step.Extracts {
-		query, err := gojq.Parse(e.Jql)
-		if err != nil {
-			fmt.Println("failed to parse extract expression", err)
-			continue
-		}
+// 			if err, ok := v.(error); ok {
+// 				fmt.Println("failed to query with jq", err)
+// 				continue
+// 			}
+// 			extracts[e.Name] = fmt.Sprintf("%v", v)
+// 		}
 
-		iterator := query.Run(data)
-		for {
-			v, ok := iterator.Next()
-			if !ok {
-				break
-			}
+// 	}
 
-			if err, ok := v.(error); ok {
-				fmt.Println("failed to query with jq", err)
-				continue
-			}
-			extracts[e.Name] = fmt.Sprintf("%v", v)
-		}
-
-	}
-
-	return &StepResult{
-		Body:     body,
-		Headers:  resp.Header.Clone(),
-		Code:     resp.StatusCode,
-		Extracts: extracts,
-	}, nil
-}
+// 	return &StepResult{
+// 		Body:     body,
+// 		Headers:  resp.Header.Clone(),
+// 		Code:     resp.StatusCode,
+// 		Extracts: extracts,
+// 	}, nil
+// }

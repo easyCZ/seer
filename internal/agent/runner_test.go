@@ -75,3 +75,40 @@ func TestRunner(t *testing.T) {
 	})
 
 }
+
+const userJSON = `[
+	{
+		"id": 1,
+		"name": "Leanne Graham",
+		"username": "Bret",
+		"email": "Sincere@april.biz",
+		"phone": "1-770-736-8031 x56442",
+		"website": "hildegard.org"
+	}
+]`
+
+func TestEvaluteExtracts(t *testing.T) {
+	resp := &apiv1.Response{
+		Status: http.StatusOK,
+		Headers: []*apiv1.Header{
+			{Key: "Content-Type", Value: "application/json"},
+			{Key: "X-Custom-Foo", Value: "henry has many sheep"},
+		},
+		Body: userJSON,
+	}
+
+	vars, err := evaluteExtracts([]*apiv1.Extract{
+		{
+			Name: "first",
+			From: &apiv1.Extract_Header{
+				Header: &apiv1.HeaderExtract{
+					HeaderName: "Content-Type",
+				},
+			},
+		},
+	}, resp)
+	require.NoError(t, err)
+	require.Equal(t, []*apiv1.Variable{
+		{Name: "first", Value: "application/json"},
+	}, vars)
+}
