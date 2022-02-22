@@ -25,7 +25,6 @@ func TestRunner(t *testing.T) {
 						Url:    "{API_ROOT}/posts",
 						Method: http.MethodGet,
 					},
-
 				},
 			},
 		},
@@ -45,5 +44,11 @@ func TestRunner(t *testing.T) {
 	require.Len(t, results, 1)
 
 	res := results[0]
-	require.EqualValues(t, http.StatusOK, res.Response.Status)
+	switch op := res.Outcome.(type) {
+	case *apiv1.StepResult_Response:
+		require.EqualValues(t, http.StatusOK, op.Response.Status)
+	default:
+		require.Fail(t, "expected succesful response")
+	}
+
 }
