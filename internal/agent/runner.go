@@ -71,7 +71,7 @@ func (r *Runner) executeStep(ctx context.Context, vars []*apiv1.Variable, step *
 			StepName: step.Name,
 			Outcome: &apiv1.StepResult_Error{
 				Error: &apiv1.StepError{
-					Message: "Failed to construct HTTP request.",
+					Message: "Failed to construct HTTP request",
 					Details: err.Error(),
 				},
 			},
