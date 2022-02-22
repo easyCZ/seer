@@ -27,11 +27,13 @@ func ListenAndServeControlPlane(c CPConfig) error {
 
 	syntheticsSvc := &SyntheticsService{repo: syntheticsRepo}
 	agentsSvc := &AgentService{repo: agentsRepo}
+	runSvc := &RunService{}
 
 	grpcServer := grpc.NewServer()
 
 	apiv1.RegisterAgentServiceServer(grpcServer, agentsSvc)
 	apiv1.RegisterSyntheticsServiceServer(grpcServer, syntheticsSvc)
+	apiv1.RegisterRunServiceServer(grpcServer, runSvc)
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", c.GRPCPort))
 	if err != nil {

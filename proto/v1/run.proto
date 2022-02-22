@@ -4,6 +4,8 @@ package run.v1;
 
 option go_package = "github.com/easyCZ/qfy/gen/v1;apiv1";
 
+import "proto/v1/synthetics.proto";
+
 message Run {
     string id = 1;
     string synthetic_id = 2;
@@ -19,7 +21,7 @@ message Result {
 }
 
 message Response {
-    int status = 1;
+    int32 status = 1;
     repeated Header headers = 2;
     string body = 3;
 }
