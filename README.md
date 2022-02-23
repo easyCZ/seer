@@ -1,4 +1,4 @@
-# seer - synthetic monitoring for APIs
+# Seer - synthetic monitoring for APIs
 
 
 <img src="./assets/logo.png" align="right" style="border:2px solid black; border-radius: 50%; padding: 2px"
