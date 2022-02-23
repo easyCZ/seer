@@ -35,8 +35,39 @@ message StepSpec {
 }
 
 message Extract {
+    // name is the name of this extract
     string name = 1;
-    string jql = 2;
+
+    oneof from {
+        HeaderExtract header = 2;
+        BodyExtract body = 3;
+    }
+}
+
+message HeaderExtract {
+    // header_name is the name of the header from which to extract data.
+    string header_name = 1;
+
+    // query is the query to run against the header value to extract data.
+    // when not specified, the whole header will be extracted.
+    ExtractQuery query = 2;
+}
+
+message BodyExtract {
+    // query is the query to run against the body to extract data.
+    ExtractQuery query = 1;
+}
+
+message ExtractQuery {
+    oneof expression {
+        // The expression is a JSON Query expression.
+        string jq = 1;
+        // The expression is a Regular expression.
+        string regexp = 2;
+        // The expression is a Yaml Query expression.
+        string yq = 3;
+
+    }
 }
 
 message ListSyntheticsRequest {}

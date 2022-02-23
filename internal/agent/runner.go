@@ -134,7 +134,7 @@ func convertResponse(r *http.Response) (*apiv1.Response, error) {
 	for name := range r.Header {
 		for _, value := range r.Header.Values(name) {
 			headers = append(headers, &apiv1.Header{
-				Key:   name,
+				Key:   strings.ToLower(name),
 				Value: value,
 			})
 		}
@@ -145,4 +145,51 @@ func convertResponse(r *http.Response) (*apiv1.Response, error) {
 		Body:    string(body),
 		Headers: headers,
 	}, nil
+}
+
+func evaluteExtracts(extracts []*apiv1.Extract, resp *apiv1.Response) ([]*apiv1.Variable, error) {
+	var vars []*apiv1.Variable
+
+	for _, e := range extracts {
+		switch t := e.GetFrom().(type) {
+		case *apiv1.Extract_Body:
+			logger.Printf("body %v", t)
+
+			return nil, nil
+		case *apiv1.Extract_Header:
+			logger.Printf("header %v", t)
+
+			for _, header := range resp.Headers {
+				if header.Key == t.Header.HeaderName {
+					val, matched := extractFromString(header.Value, t.Header.Query)
+					if matched {
+						vars = append(vars, &apiv1.Variable{
+							Name:  e.Name,
+							Value: val,
+						})
+					}
+				}
+			}
+		default:
+			return nil, fmt.Errorf("invalid extract from definition")
+		}
+	}
+
+	return vars, nil
+}
+
+func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool) {
+	fmt.Printf("extract query %v", q)
+	if q == nil {
+		return s, true
+	}
+
+	switch t := q.Expression.(type) {
+	case *apiv1.ExtractQuery_Jq:
+		logger.Printf("JQL %v", t)
+		return "", false
+
+	default:
+		return s, true
+	}
 }
