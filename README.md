@@ -14,11 +14,12 @@
 * Private networks - run inside VPCs without exposing the service to public internet.
 * Low-overhead - utilize unused capacity in your existing compute (kubernetes clusters).
 
-**Why does it exist**
+**Motivation**
 
 There are a a number of commercial products offering synthetic monitoring ([DataDog](https://docs.datadoghq.com/synthetics/), [NewRelic](https://docs.newrelic.com/docs/synthetics/synthetic-monitoring/getting-started/get-started-synthetic-monitoring/), [Sematext](https://sematext.com/synthetic-monitoring/)). This tool aims to provide an alternative which can utilize your existing infrastrucuture excess capacity to reduce extra costs (and dependencies) on third party providers.
 
-
+## Maturity
+Seer is in very early stages of maturity and unsuitable for most workloads.
 
 ## Credits
 * Logo by [Synthetic Biology by Laymik from NounProject.com](https://thenounproject.com/icon/synthetic-biology-4116522/)
