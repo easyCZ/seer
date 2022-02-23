@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	apiv1 "github.com/easyCZ/qfy/gen/v1"
+	apiv1 "github.com/easyCZ/seer/gen/v1"
 	"github.com/stretchr/testify/require"
 )
 

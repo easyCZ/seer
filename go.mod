@@ -1,4 +1,4 @@
-module github.com/easyCZ/qfy
+module github.com/easyCZ/seer
 
 go 1.17
 

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package run.v1;
 
-option go_package = "github.com/easyCZ/qfy/gen/v1;apiv1";
+option go_package = "github.com/easyCZ/seer/gen/v1;apiv1";
 
 import "proto/v1/synthetics.proto";
 

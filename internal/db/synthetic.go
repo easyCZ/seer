@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/easyCZ/qfy/internal/db/internal"
+	"github.com/easyCZ/seer/internal/db/internal"
 
 	"gorm.io/gorm"
 )

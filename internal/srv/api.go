@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	apiv1 "github.com/easyCZ/qfy/gen/v1"
-	"github.com/easyCZ/qfy/internal/db"
+	apiv1 "github.com/easyCZ/seer/gen/v1"
+	"github.com/easyCZ/seer/internal/db"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )

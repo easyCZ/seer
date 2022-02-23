@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	apiv1 "github.com/easyCZ/qfy/gen/v1"
+	apiv1 "github.com/easyCZ/seer/gen/v1"
 
 	"sync/atomic"
 )
