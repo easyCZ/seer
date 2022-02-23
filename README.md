@@ -1,7 +1,7 @@
 # seer
 
 
-<img src="./assets/logo.png" align="right" style="border:2px solid black; border-radius: 50%; padding: 2px" 
+<img src="./assets/logo.png" align="right" style="border:2px solid black; border-radius: 50%; padding: 2px"
      alt="Synthetic Biology by Laymik from NounProject.com" width="150" height="150">
 
 
@@ -10,7 +10,7 @@
 
 **Features**:
 
-* Self-hosted - deploy on your existing infrastructure (e.g. kubernetes) 
+* Self-hosted - deploy on your existing infrastructure (e.g. kubernetes)
 * Private networks - run inside VPCs without exposing the service to public internet.
 * Low-overhead - utilize unused capacity in your existing compute (kubernetes clusters).
 
