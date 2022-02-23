@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package agent.v1;
 
-option go_package = "github.com/easyCZ/qfy/gen/v1;apiv1";
+option go_package = "github.com/easyCZ/seer/gen/v1;apiv1";
 
 message SubscribeRequest {
   string agentID = 1;

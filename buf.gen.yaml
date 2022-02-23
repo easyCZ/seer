@@ -5,10 +5,10 @@ plugins:
     out: .
     opt:
       - paths=import
-      - module=github.com/easyCZ/qfy
+      - module=github.com/easyCZ/seer
   - name: go-grpc
     out: .
     opt:
       - paths=import
       - require_unimplemented_servers=false
-      - module=github.com/easyCZ/qfy
+      - module=github.com/easyCZ/seer

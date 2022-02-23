@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	"github.com/easyCZ/qfy/internal/db/internal"
+	"github.com/easyCZ/seer/internal/db/internal"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

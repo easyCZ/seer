@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	agentv1 "github.com/easyCZ/qfy/gen/v1"
-	"github.com/easyCZ/qfy/internal/db"
-	"github.com/easyCZ/qfy/internal/srv"
+	agentv1 "github.com/easyCZ/seer/gen/v1"
+	"github.com/easyCZ/seer/internal/db"
+	"github.com/easyCZ/seer/internal/srv"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
