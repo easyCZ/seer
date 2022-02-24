@@ -23,4 +23,3 @@ Seer is in very early stages of maturity and unsuitable for most workloads.
 
 ## Credits
 * Logo by [Synthetic Biology by Laymik from NounProject.com](https://thenounproject.com/icon/synthetic-biology-4116522/)
-g
