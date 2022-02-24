@@ -230,6 +230,7 @@ func TestEvaluteExtracts(t *testing.T) {
 }
 
 func findVariableByKey(t *testing.T, vars []*apiv1.Variable, key string) (*apiv1.Variable, bool) {
+	t.Helper()
 	for _, v := range vars {
 		if v.Name == key {
 			return v, true
