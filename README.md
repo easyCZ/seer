@@ -8,7 +8,7 @@
 **Seer** is an open-source implementation of [synthetic monitoring](https://en.wikipedia.org/wiki/Synthetic_monitoring) for HTTP APIs.
 
 
-**Features**:
+**Goals**:
 
 * Self-hosted - deploy on your existing infrastructure (e.g. kubernetes)
 * Private networks - run inside VPCs without exposing the service to public internet.
@@ -20,6 +20,11 @@ There are a a number of commercial products offering synthetic monitoring ([Data
 
 ## Maturity
 Seer is in very early stages of maturity and unsuitable for most workloads.
+
+## Developing
+The repository is setup to be developed inside GitPod.
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/easyCZ/seer)
 
 ## Credits
 * Logo by [Synthetic Biology by Laymik from NounProject.com](https://thenounproject.com/icon/synthetic-biology-4116522/)
