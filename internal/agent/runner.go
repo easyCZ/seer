@@ -3,6 +3,7 @@ package agent
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,6 +16,8 @@ import (
 	apiv1 "github.com/easyCZ/seer/gen/v1"
 
 	"sync/atomic"
+
+	"github.com/itchyny/gojq"
 )
 
 type Runner struct {
@@ -54,7 +57,7 @@ func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.St
 		}
 
 		results = append(results, result)
-		vars = result.Variables
+		vars = append(vars, result.Variables...)
 	}
 
 	return results, nil
@@ -105,11 +108,17 @@ func (r *Runner) executeStep(ctx context.Context, vars []*apiv1.Variable, step *
 		return nil, fmt.Errorf("failed to convert response: %w", err)
 	}
 
+	extractedVars, err := evaluteExtracts(spec.Extracts, response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to evaluate extracts: %w", err)
+	}
+
 	return &apiv1.StepResult{
 		StepName: step.Name,
 		Outcome: &apiv1.StepResult_Response{
 			Response: response,
 		},
+		Variables: append(vars, extractedVars...),
 	}, nil
 }
 
@@ -154,9 +163,19 @@ func evaluteExtracts(extracts []*apiv1.Extract, resp *apiv1.Response) ([]*apiv1.
 	for _, e := range extracts {
 		switch t := e.GetFrom().(type) {
 		case *apiv1.Extract_Body:
-			logger.Printf("body %v", t)
 
-			return nil, nil
+			extracted, found, err := extractFromString(resp.Body, t.Body.Query)
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract from body: %w", err)
+			}
+
+			if found {
+				vars = append(vars, &apiv1.Variable{
+					Name:  e.Name,
+					Value: extracted,
+				})
+			}
+
 		case *apiv1.Extract_Header:
 			logger.Printf("header %v", t)
 
@@ -191,7 +210,7 @@ func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool, error) {
 	switch t := q.Expression.(type) {
 	case *apiv1.ExtractQuery_Jq:
 		logger.Printf("JQL %v", t)
-		return "", false, nil
+		return extractJQL(s, t.Jq)
 
 	case *apiv1.ExtractQuery_Regexp:
 		exp, err := regexp.Compile(t.Regexp)
@@ -209,4 +228,34 @@ func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool, error) {
 	default:
 		return s, true, nil
 	}
+}
+
+func extractJQL(s string, query string) (string, bool, error) {
+	q, err := gojq.Parse(query)
+	if err != nil {
+		return "", false, fmt.Errorf("failed to parse JSON Query: %w", err)
+	}
+
+	var data interface{}
+	if err := json.Unmarshal([]byte(s), &data); err != nil {
+		return "", false, fmt.Errorf("data is not valid JSON so cannot apply JQ to it: %w", err)
+	}
+
+	iterator := q.Run(data)
+	for {
+		match, ok := iterator.Next()
+		if !ok {
+			break
+		}
+
+		if err, ok := match.(error); ok {
+			return "", false, fmt.Errorf("failed to query with JQ: %w", err)
+		}
+
+		if match != "" {
+			return fmt.Sprintf("%v", match), true, nil
+		}
+	}
+
+	return "", false, nil
 }

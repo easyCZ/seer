@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -37,7 +38,7 @@ func TestRunner(t *testing.T) {
 			},
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 95*time.Second)
 		defer cancel()
 
 		results, err := runner.Execute(ctx, synthetic)
@@ -46,6 +47,75 @@ func TestRunner(t *testing.T) {
 
 		res := results[0]
 		require.EqualValues(t, http.StatusOK, res.GetResponse().Status)
+	})
+
+	t.Run("multi-step success", func(t *testing.T) {
+		synthetic := &apiv1.Synthetic{
+			Id:   "123",
+			Name: "synthetic-name",
+			Spec: &apiv1.SyntheticSpec{
+				Variables: []*apiv1.Variable{
+					{Name: "API_ROOT", Value: "https://jsonplaceholder.typicode.com"},
+				},
+				Steps: []*apiv1.Step{
+					{
+						Name: "List posts",
+						Spec: &apiv1.StepSpec{
+							Url:    "{API_ROOT}/posts",
+							Method: http.MethodGet,
+							Extracts: []*apiv1.Extract{
+								{
+									Name: "FIRST_POST_ID",
+									From: &apiv1.Extract_Body{
+										Body: &apiv1.BodyExtract{
+											Query: &apiv1.ExtractQuery{
+												Expression: &apiv1.ExtractQuery_Jq{
+													Jq: ".[0].id",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Name: "Get first comment for first post",
+						Spec: &apiv1.StepSpec{
+							Url:    "{API_ROOT}/posts/{FIRST_POST_ID}/comments",
+							Method: http.MethodGet,
+							Extracts: []*apiv1.Extract{
+								{
+									Name: "FIRST_POST_FIRST_COMMENT",
+									From: &apiv1.Extract_Body{
+										Body: &apiv1.BodyExtract{
+											Query: &apiv1.ExtractQuery{
+												Expression: &apiv1.ExtractQuery_Jq{
+													Jq: ".[0].body",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		results, err := runner.Execute(ctx, synthetic)
+		require.NoError(t, err)
+		require.Len(t, results, 2)
+
+		res := results[1]
+		fmt.Println("variables", res.Variables)
+		v, found := findVariableByKey(t, res.Variables, "FIRST_POST_FIRST_COMMENT")
+		require.True(t, found)
+
+		require.EqualValues(t, "laudantium enim quasi est quidem magnam voluptate ipsam eos\ntempora quo necessitatibus\ndolor quam autem quasi\nreiciendis et nam sapiente accusantium", v.Value)
 
 	})
 
@@ -136,4 +206,36 @@ func TestEvaluteExtracts(t *testing.T) {
 		}, vars)
 	})
 
+	t.Run("extract using JQ from body", func(t *testing.T) {
+		vars, err := evaluteExtracts([]*apiv1.Extract{
+			{
+				Name: "first",
+				From: &apiv1.Extract_Body{
+					Body: &apiv1.BodyExtract{
+						Query: &apiv1.ExtractQuery{
+							Expression: &apiv1.ExtractQuery_Jq{
+								Jq: ".[0].id",
+							},
+						},
+					},
+				},
+			},
+		}, resp)
+
+		require.NoError(t, err)
+		require.Equal(t, []*apiv1.Variable{
+			{Name: "first", Value: "1"},
+		}, vars)
+	})
+}
+
+func findVariableByKey(t *testing.T, vars []*apiv1.Variable, key string) (*apiv1.Variable, bool) {
+	t.Helper()
+	for _, v := range vars {
+		if v.Name == key {
+			return v, true
+		}
+	}
+
+	return nil, false
 }
