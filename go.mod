@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/golangci/golangci-lint v1.44.2
+	github.com/itchyny/gojq v0.12.6
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.43.0
@@ -78,6 +79,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/itchyny/timefmt-go v0.1.3 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
