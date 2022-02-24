@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"regexp"
 	"strings"
 
 	apiv1 "github.com/easyCZ/seer/gen/v1"
@@ -161,7 +162,10 @@ func evaluteExtracts(extracts []*apiv1.Extract, resp *apiv1.Response) ([]*apiv1.
 
 			for _, header := range resp.Headers {
 				if header.Key == t.Header.HeaderName {
-					val, matched := extractFromString(header.Value, t.Header.Query)
+					val, matched, err := extractFromString(header.Value, t.Header.Query)
+					if err != nil {
+						return nil, fmt.Errorf("failed to extract from header %s: %w", header.Key, err)
+					}
 					if matched {
 						vars = append(vars, &apiv1.Variable{
 							Name:  e.Name,
@@ -178,18 +182,31 @@ func evaluteExtracts(extracts []*apiv1.Extract, resp *apiv1.Response) ([]*apiv1.
 	return vars, nil
 }
 
-func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool) {
+func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool, error) {
 	fmt.Printf("extract query %v", q)
 	if q == nil {
-		return s, true
+		return s, true, nil
 	}
 
 	switch t := q.Expression.(type) {
 	case *apiv1.ExtractQuery_Jq:
 		logger.Printf("JQL %v", t)
-		return "", false
+		return "", false, nil
+
+	case *apiv1.ExtractQuery_Regexp:
+		exp, err := regexp.Compile(t.Regexp)
+		if err != nil {
+			return "", false, fmt.Errorf("failed to compile regular expression: %w", err)
+		}
+
+		matches := exp.FindStringSubmatch(s)
+		logger.Printf("Regexp matches: %v", matches)
+		if len(matches) > 1 {
+			return matches[1], true, nil
+		}
+		return "", false, nil
 
 	default:
-		return s, true
+		return s, true, nil
 	}
 }

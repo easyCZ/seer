@@ -97,18 +97,43 @@ func TestEvaluteExtracts(t *testing.T) {
 		Body: userJSON,
 	}
 
-	vars, err := evaluteExtracts([]*apiv1.Extract{
-		{
-			Name: "first",
-			From: &apiv1.Extract_Header{
-				Header: &apiv1.HeaderExtract{
-					HeaderName: "Content-Type",
+	t.Run("extract whole header when query not specified", func(t *testing.T) {
+		vars, err := evaluteExtracts([]*apiv1.Extract{
+			{
+				Name: "first",
+				From: &apiv1.Extract_Header{
+					Header: &apiv1.HeaderExtract{
+						HeaderName: "Content-Type",
+					},
 				},
 			},
-		},
-	}, resp)
-	require.NoError(t, err)
-	require.Equal(t, []*apiv1.Variable{
-		{Name: "first", Value: "application/json"},
-	}, vars)
+		}, resp)
+		require.NoError(t, err)
+		require.Equal(t, []*apiv1.Variable{
+			{Name: "first", Value: "application/json"},
+		}, vars)
+	})
+
+	t.Run("extract a specific part of the header when query specified", func(t *testing.T) {
+		vars, err := evaluteExtracts([]*apiv1.Extract{
+			{
+				Name: "first",
+				From: &apiv1.Extract_Header{
+					Header: &apiv1.HeaderExtract{
+						HeaderName: "Content-Type",
+						Query: &apiv1.ExtractQuery{
+							Expression: &apiv1.ExtractQuery_Regexp{
+								Regexp: "application/(.*)",
+							},
+						},
+					},
+				},
+			},
+		}, resp)
+		require.NoError(t, err)
+		require.Equal(t, []*apiv1.Variable{
+			{Name: "first", Value: "json"},
+		}, vars)
+	})
+
 }
