@@ -6,14 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httputil"
-	"os"
 	"regexp"
 	"strings"
 
 	apiv1 "github.com/easyCZ/seer/gen/v1"
+	"github.com/easyCZ/seer/internal/log"
+	"go.uber.org/zap"
 
 	"sync/atomic"
 
@@ -31,10 +31,6 @@ type Runner struct {
 	debug bool
 }
 
-var (
-	logger = log.New(os.Stderr, "runner", log.Default().Flags())
-)
-
 func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.StepResult, error) {
 	if !atomic.CompareAndSwapInt32(&r.isExcecuting, 0, 1) {
 		return nil, fmt.Errorf("running is already executing")
@@ -47,14 +43,20 @@ func (r *Runner) Execute(ctx context.Context, syn *apiv1.Synthetic) ([]*apiv1.St
 	spec := syn.Spec
 	vars := spec.Variables
 
+	ctx = log.WithFields(ctx, zap.String("synthetic_id", syn.Id))
+	log.FromContext(ctx).Infow("Executing synthetic", zap.Any("synthetic", syn))
+
 	var results []*apiv1.StepResult
 	for i, step := range spec.Steps {
-		logger.Printf("Executing step #%d - %s", i, step.Name)
+		log.FromContext(ctx).Infof("Executing step #%d %s", i, step.Name)
+
 		result, err := r.executeStep(ctx, vars, step)
 		if err != nil {
 			// TODO: Will need to package the errors into the Result so it can be observed.
 			return nil, fmt.Errorf("failed to execute step: %w", err)
 		}
+
+		log.FromContext(ctx).With("result", result).Infof("Succesfully exectued step.")
 
 		results = append(results, result)
 		vars = append(vars, result.Variables...)
@@ -177,7 +179,6 @@ func evaluteExtracts(extracts []*apiv1.Extract, resp *apiv1.Response) ([]*apiv1.
 			}
 
 		case *apiv1.Extract_Header:
-			logger.Printf("header %v", t)
 
 			for _, header := range resp.Headers {
 				if header.Key == t.Header.HeaderName {
@@ -209,7 +210,6 @@ func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool, error) {
 
 	switch t := q.Expression.(type) {
 	case *apiv1.ExtractQuery_Jq:
-		logger.Printf("JQL %v", t)
 		return extractJQL(s, t.Jq)
 
 	case *apiv1.ExtractQuery_Regexp:
@@ -219,7 +219,6 @@ func extractFromString(s string, q *apiv1.ExtractQuery) (string, bool, error) {
 		}
 
 		matches := exp.FindStringSubmatch(s)
-		logger.Printf("Regexp matches: %v", matches)
 		if len(matches) > 1 {
 			return matches[1], true, nil
 		}
