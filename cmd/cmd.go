@@ -6,8 +6,8 @@ import (
 
 	agentv1 "github.com/easyCZ/seer/gen/v1"
 	"github.com/easyCZ/seer/internal/db"
+	"github.com/easyCZ/seer/internal/hub"
 	"github.com/easyCZ/seer/internal/log"
-	"github.com/easyCZ/seer/internal/srv"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -26,8 +26,7 @@ var (
 		Short: "Start API server & Control Plane",
 		Run: func(cmd *cobra.Command, args []string) {
 			logger, _ := zap.NewDevelopment()
-			if err := srv.ListenAndServeControlPlane(srv.CPConfig{
-				Logger:   logger.Sugar(),
+			srv, err := hub.NewServer(logger.Sugar(), hub.Config{
 				GRPCPort: 3000,
 				DB: db.ConnectionParams{
 					Host:         dbHost,
@@ -36,8 +35,14 @@ var (
 					Password:     dbPassword,
 					DatabaseName: dbName,
 				},
-			}); err != nil {
-				logger.Sugar().Fatalw("Failed to listen and serve", zap.Error(err))
+			})
+
+			if err != nil {
+				logger.Sugar().Fatalw("Failed to setup hub server", zap.Error(err))
+			}
+
+			if err := srv.ListenAndServe(); err != nil {
+				logger.Sugar().Fatalw("Failed to listen and server hub server", zap.Error(err))
 			}
 		},
 	}
