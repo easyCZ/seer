@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/easyCZ/seer/internal/db"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAgentUpsert(t *testing.T) {
-	db := db.NewTestDB(t)
+	db := NewTestDB(t)
 	repo := NewAgentsRepository(db)
 
 	toCreate := &Agent{
