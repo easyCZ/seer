@@ -1,4 +1,4 @@
-package srv
+package hub
 
 import (
 	"fmt"
@@ -11,19 +11,37 @@ import (
 	"gorm.io/gorm"
 )
 
-type CPConfig struct {
-	Logger *zap.SugaredLogger
-
+type Config struct {
 	DB       db.ConnectionParams
 	GRPCPort int
 }
 
-func ListenAndServeControlPlane(c CPConfig) error {
-	logger := c.Logger
+type Server struct {
+	*grpc.Server
 
-	database, err := setupDB(c.DB)
+	logger *zap.SugaredLogger
+	config Config
+}
+
+func (s *Server) ListenAndServe() error {
+	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", s.config.GRPCPort))
 	if err != nil {
-		return fmt.Errorf("failed to setup db: %w", err)
+		return fmt.Errorf("failed to listen: %w", err)
+	}
+
+	s.logger.Infof("Starting gRPC server on localhost:%d", s.config.GRPCPort)
+	if err := s.Server.Serve(listener); err != nil {
+		return fmt.Errorf("failed to serve gRPC: %w", err)
+	}
+
+	s.logger.Info("Finished serving gRPC API.")
+	return nil
+}
+
+func NewServer(logger *zap.SugaredLogger, config Config) (*Server, error) {
+	database, err := setupDB(config.DB)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup db: %w", err)
 	}
 
 	syntheticsRepo := db.NewSyntheticsRepository(database)
@@ -39,18 +57,11 @@ func ListenAndServeControlPlane(c CPConfig) error {
 	apiv1.RegisterSyntheticsServiceServer(grpcServer, syntheticsSvc)
 	apiv1.RegisterRunServiceServer(grpcServer, runSvc)
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", c.GRPCPort))
-	if err != nil {
-		return fmt.Errorf("failed to listen: %w", err)
-	}
-
-	logger.Infof("Starting gRPC server on localhost:%d", c.GRPCPort)
-	if err := grpcServer.Serve(listener); err != nil {
-		return fmt.Errorf("failed to serve gRPC: %w", err)
-	}
-
-	logger.Info("Finished serving gRPC API.")
-	return nil
+	return &Server{
+		logger: logger,
+		config: config,
+		Server: grpcServer,
+	}, nil
 }
 
 func setupDB(params db.ConnectionParams) (*gorm.DB, error) {

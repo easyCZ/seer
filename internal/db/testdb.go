@@ -13,13 +13,7 @@ import (
 func NewTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	database, err := New(ConnectionParams{
-		Host:         "localhost",
-		Port:         5432,
-		User:         "gitpod",
-		Password:     "gitpod",
-		DatabaseName: "postgres-test",
-	})
+	database, err := New(TestDBConnectionParams())
 	require.NoError(t, err)
 	require.NoError(t, Migrate(database))
 
@@ -28,4 +22,14 @@ func NewTestDB(t *testing.T) *gorm.DB {
 	})
 
 	return database
+}
+
+func TestDBConnectionParams() ConnectionParams {
+	return ConnectionParams{
+		Host:         "localhost",
+		Port:         5432,
+		User:         "gitpod",
+		Password:     "gitpod",
+		DatabaseName: "postgres-test",
+	}
 }
