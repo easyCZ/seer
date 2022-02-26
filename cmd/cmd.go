@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	agentv1 "github.com/easyCZ/seer/gen/v1"
 	"github.com/easyCZ/seer/internal/db"
+	"github.com/easyCZ/seer/internal/log"
 	"github.com/easyCZ/seer/internal/srv"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -23,7 +25,9 @@ var (
 		Use:   "server",
 		Short: "Start API server & Control Plane",
 		Run: func(cmd *cobra.Command, args []string) {
+			logger, _ := zap.NewDevelopment()
 			if err := srv.ListenAndServeControlPlane(srv.CPConfig{
+				Logger:   logger.Sugar(),
 				GRPCPort: 3000,
 				DB: db.ConnectionParams{
 					Host:         dbHost,
@@ -33,7 +37,7 @@ var (
 					DatabaseName: dbName,
 				},
 			}); err != nil {
-				log.Fatalln("Failed to setup database connection.", err)
+				logger.Sugar().Fatalw("Failed to listen and serve", zap.Error(err))
 			}
 		},
 	}
@@ -42,7 +46,9 @@ var (
 		Use:   "agent",
 		Short: "Start agent",
 		Run: func(cmd *cobra.Command, args []string) {
-			runClient(cmd.Context())
+			if err := runClient(cmd.Context()); err != nil {
+				log.FromContext(cmd.Context()).Fatalw("Failed to run agent.", zap.Error(err))
+			}
 		},
 	}
 
@@ -50,6 +56,7 @@ var (
 		Use:   "fixtures",
 		Short: "Generate database fixtures",
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx := cmd.Context()
 			repo, err := db.NewSyntheticsRepositoryFromDBParams(db.ConnectionParams{
 				Host:         dbHost,
 				Port:         dbPort,
@@ -58,10 +65,9 @@ var (
 				DatabaseName: dbName,
 			})
 			if err != nil {
-				log.Fatalln("Failed to create synthetics repository", err)
+				log.FromContext(ctx).Fatalw("Failed to create synthetics repository", zap.Error(err))
 			}
 
-			ctx := context.Background()
 			count := 10
 			for i := 0; i < count; i++ {
 				_, err := repo.Create(ctx, &db.Synthetic{
@@ -84,19 +90,19 @@ var (
 					},
 				})
 				if err != nil {
-					log.Fatalln("Failed to create record", err)
+					log.FromContext(ctx).Fatalw("Failed to create record", zap.Error(err))
 				}
 			}
 
-			log.Printf("Created %d fixtures.", count)
+			log.FromContext(ctx).Infof("Created %d fixtures.", count)
 		},
 	}
 )
 
-func runClient(ctx context.Context) {
+func runClient(ctx context.Context) error {
 	conn, err := grpc.Dial("localhost:3000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Failed to dial localhost:3000: %v", err)
+		return err
 	}
 	defer conn.Close()
 
@@ -107,16 +113,17 @@ func runClient(ctx context.Context) {
 		Location: "EU",
 	})
 	if err != nil {
-		log.Fatalf("Failed to subscribe agent: %v", err)
+		return fmt.Errorf("failed to subscribe agent: %w", err)
 	}
 
+	logger := log.FromContext(ctx)
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
-			log.Fatalf("Failed to receive message: %v", err)
+			return fmt.Errorf("failed to receive message: %w", err)
 		}
 
-		log.Printf("Got message %v", msg)
+		logger.Infof("Got message %v", msg)
 	}
 
 }
@@ -143,7 +150,11 @@ func init() {
 }
 
 func main() {
-	if err := rootCmd.Execute(); err != nil {
-		log.Fatalln("Command execution failed.", err)
+	logger, _ := zap.NewDevelopment()
+	sugared := logger.Sugar()
+	ctx := log.ToContext(context.Background(), sugared)
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		sugared.Fatal("Command execution failed.", zap.Error(err))
 	}
 }

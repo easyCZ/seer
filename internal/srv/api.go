@@ -2,24 +2,28 @@ package srv
 
 import (
 	"fmt"
-	"log"
 	"net"
 
 	apiv1 "github.com/easyCZ/seer/gen/v1"
 	"github.com/easyCZ/seer/internal/db"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
 type CPConfig struct {
+	Logger *zap.SugaredLogger
+
 	DB       db.ConnectionParams
 	GRPCPort int
 }
 
 func ListenAndServeControlPlane(c CPConfig) error {
+	logger := c.Logger
+
 	database, err := setupDB(c.DB)
 	if err != nil {
-		log.Fatalf("Failed to setup db: %v", err)
+		return fmt.Errorf("failed to setup db: %w", err)
 	}
 
 	syntheticsRepo := db.NewSyntheticsRepository(database)
@@ -37,15 +41,15 @@ func ListenAndServeControlPlane(c CPConfig) error {
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", c.GRPCPort))
 	if err != nil {
-		log.Fatalf("Failed to listen on port %d: %v", c.GRPCPort, err)
+		return fmt.Errorf("failed to listen: %w", err)
 	}
 
-	log.Printf("Starting gRPC server on localhost:%d", c.GRPCPort)
+	logger.Infof("Starting gRPC server on localhost:%d", c.GRPCPort)
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("gRPC server failed to start: %v", err)
+		return fmt.Errorf("failed to serve gRPC: %w", err)
 	}
 
-	log.Printf("Finished serving gRPC API.")
+	logger.Info("Finished serving gRPC API.")
 	return nil
 }
 
