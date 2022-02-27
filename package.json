@@ -2,9 +2,11 @@
   "name": "seer",
   "version": "0.0.1",
   "description": "Run and manage synthetic monitors",
-  "main": "index.js",
+  "source": "app/index.html",
+  "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel",
+    "build": "parcel build"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/easyCZ/seer/issues"
   },
-  "homepage": "https://github.com/easyCZ/seer#readme"
+  "homepage": "https://github.com/easyCZ/seer#readme",
+  "devDependencies": {
+    "parcel": "^2.3.2"
+  }
 }
