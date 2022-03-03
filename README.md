@@ -22,7 +22,7 @@ Seer is in very early stages of maturity and unsuitable for most workloads.
 ## Developing
 
 fiooo
-bar
+barasdada
 
 
 The repository is setup to be developed inside GitPod.
