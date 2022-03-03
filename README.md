@@ -21,6 +21,9 @@ Seer is in very early stages of maturity and unsuitable for most workloads.
 
 ## Developing
 
+
+
+
 The repository is setup to be developed inside GitPod.
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/easyCZ/seer)
