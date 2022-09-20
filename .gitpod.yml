@@ -9,7 +9,7 @@ tasks:
       createdb -p 5432 -h 127.0.0.1 -U gitpod -e postgres-test
   - name: pre-commit setup
     init: |
-      pre-commit install
+      pre-commit install --install-hooks
   - name: UI
     init: |
       npm install
